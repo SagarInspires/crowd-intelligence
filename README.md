@@ -1,7 +1,7 @@
 # Crowd Intelligence — AI-Based Crowd Risk Estimation
 
-BTech final-year project (IIT Patna, Metallurgy and Material Science) —
-Supervisor: Prof. Mahesh Kumar Kolekar.
+BTech final-year project (IIT Patna, Electrical and Electronics Engineering) —
+Author: Sagar Kumar. Supervisor: Prof. Mahesh Kumar Kolekar.
 
 Vision-based estimation of physically-grounded crowd risk indicators —
 density × motion-variance crowd pressure, per Helbing, Johansson &
