@@ -39,3 +39,6 @@ venv/
 
 # Kaggle credentials — NEVER commit
 kaggle.json
+
+!data/your_video/annotated_frames/*.jpg
+!data/your_video/annotated_frames/*.png
