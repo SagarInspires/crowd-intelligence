@@ -19,17 +19,17 @@ how this file stops being trustworthy.
 - Density maps: fixed (sigma=15) and geometry-adaptive (beta=0.3, k=3, sigma clipped 2-25 px), stride-8 sum-pooled targets, mask stored separately.
 - Checks passed: mass = N (tol 1e-3) for all frames, pooling mass-preserving, no head inside an ignore polygon, 2 border heads clipped (frames 93, 1023).
 - Observation: fixed sigma=15 merges heads in dense zones; adaptive resolves them. Adaptive will be the main GT.
-- Open: annotation noise floor not yet measured (E001).
+- Open: annotation noise floor not yet measured (planned: re-annotate frames 465, 279, 0 blind).
 
-   ## E001: Off-the-shelf person detectors vs clicked heads (2026-09-29)
-   - Frames: 15 (5 tuning, 10 reporting), 1080x1920, imgsz=1920, ultralytics 8.4.165, ignore regions excluded.
-   - Cutoff chosen on tuning frames (grid 0.001-0.5, F1 and count-error rules agree).
-   - YOLOv8x (cutoff 0.005): MAE 18.7 (95% CI 11-28), bias -15, recall 66%, precision 68%, far-half recall 36%, near 79%.
-   - YOLO26x (cutoff 0.02): MAE 44.3 (26-62), bias -43, recall 68%, precision 75%, far-half recall 42%, near 78%.
-   - At default confidence 0.25, YOLOv8x finds ~14 and YOLO26x ~51 boxes per frame (true ~454).
-   - Ignore regions hold only ~1-4% of raw boxes; the surplus boxes are not explained by them.
-   - Reading: totals look good only because misses and false boxes cancel (recall/precision ~66-75%); the count swings hugely with the cutoff (YOLOv8x bias -149 at 0.01 vs -15 at 0.005). A detector needs per-scene tuning with labels.
-   - Caveats: 10 reporting frames, one video, precision is a lower bound (true count is a lower bound), cutoff tuned on 5 labelled frames.
+## E001: Off-the-shelf person detectors vs clicked heads (2026-09-29)
+- Frames: 15 (5 tuning, 10 reporting), 1080x1920, imgsz=1920, ultralytics 8.4.165, ignore regions excluded.
+- Cutoff chosen on tuning frames (grid 0.001-0.5, F1 and count-error rules agree).
+- YOLOv8x (cutoff 0.005): MAE 18.7 (95% CI 11-28), bias -15, recall 66%, precision 68%, far-half recall 36%, near 79%.
+- YOLO26x (cutoff 0.02): MAE 44.3 (26-62), bias -43, recall 68%, precision 75%, far-half recall 42%, near 78%.
+- At default confidence 0.25, YOLOv8x finds ~14 and YOLO26x ~51 boxes per frame (true ~454).
+- Ignore regions hold only ~1-4% of raw boxes; the surplus boxes are not explained by them.
+- Reading: totals look good only because misses and false boxes cancel (recall/precision ~66-75%); the count swings hugely with the cutoff (YOLOv8x bias -149 at 0.01 vs -15 at 0.005). A detector needs per-scene tuning with labels.
+- Caveats: 10 reporting frames, one video, precision is a lower bound (true count is a lower bound), cutoff tuned on 5 labelled frames.
 
 ## E002 — Slicing (SAHI-style tiling) vs full-frame detection
 **Date:** 2026-09-29 | **Notebook:** notebooks/03_sahi_E002.ipynb | **Data:** 15 annotated frames (5 tuning, 10 test)
@@ -73,7 +73,7 @@ The E002 baseline row is authoritative (recall 71.08, far recall 47.38, MAE 31.3
 Video check: 1303 frames decoded = reported; annotated photos match video frames (mean abs diff 1.4-1.5, JPEG noise).
 
 **Results:**
-1. **Count stability** (at equal mean count ~450 boxes/frame): noise around a 1-s median is 5.0% for YOLOv8x and 2.4 / 2.4 / 2.3% for YOLO26x nms=True / nms=False / tiles. Frame pairs with count change >= 10: 42 / 25 / 26 / 22%. Steadiness comes from the model, not from tiling or the NMS mode. Every detector still changes by >= 5 in about half of frame pairs, so a 1-s median filter is needed. Both detectors show a ~15% count drop at 3-5 s (cause: to check, frames 240 vs 300).
+1. **Count stability** (at equal mean count ~450 boxes/frame): noise around a 1-s median is 5.0% for YOLOv8x and 2.4 / 2.4 / 2.3% for YOLO26x nms=True / nms=False / tiles. Frame pairs with count change >= 10: 42 / 25 / 26 / 22%. Steadiness comes from the model, not from tiling or the NMS mode. Every detector still changes by >= 5 in about half of frame pairs, so a 1-s median filter is needed. Both detectors show a ~15% count drop at 3-5 s (checked in E003b: YOLO26x count dips 5-8% during the camera tilt at 3-7 s, but a similar dip occurs at 18-21 s with no camera motion; tilt not established as the cause).
 2. **Recall at equal precision** (0.65 / 0.70 / 0.76; far half in brackets):
    YOLOv8x 0.68 / 0.62 / 0.53 (0.42 / 0.34 / 0.24);
    YOLO26x nms=True 0.79 / 0.76 / 0.70 (0.61 / 0.55 / 0.47);
@@ -82,7 +82,7 @@ Video check: 1303 frames decoded = reported; annotated photos match video frames
 3. **MAE from box counts is a cutoff artifact:** n_det ~ n_true x recall / precision. YOLOv8x's F1 cutoff has precision ~ recall (0.67 / 0.67), so its false alarms cancel its misses. The count bias changes sign with the cutoff (about +85 to +103 at precision 0.65, -43 to -143 at 0.76).
 4. The far half (y < 960) holds 30% of the labelled test heads (1391 of 4582).
 
-**Conclusions:** YOLO26x replaces YOLOv8x as the detection baseline (higher recall at equal precision, half the flicker, same speed). On this clip NMS-free gave no recall or stability advantage over NMS. Tiling adds about 4-5 pp far-half recall at equal precision for 6x the compute. The crowd-mask source (tiles vs full-frame nms=True) is decided by a registration drift ablation in notebook 05.
+**Conclusions:** YOLO26x replaces YOLOv8x as the detection baseline (higher recall at equal precision, half the flicker, same speed). On this clip NMS-free gave no recall or stability advantage over NMS. Tiling adds about 4-5 pp far-half recall at equal precision for 6x the compute. The crowd-mask source (tiles vs full-frame nms=True) was decided in E003b: full-frame nms=True mask (0.003, 20 px); the tiled mask differs by at most 3.4 px.
 
 **Caveats:** 10 labelled test frames from one clip; no confidence intervals in the matched-precision comparison; cutoffs tuned on 5 frames; absolute numbers differ slightly from E002 because E002 used JPEG stills and E003 uses decoded video frames.
 
