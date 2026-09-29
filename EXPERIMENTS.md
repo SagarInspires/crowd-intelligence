@@ -87,3 +87,28 @@ Video check: 1303 frames decoded = reported; annotated photos match video frames
 **Caveats:** 10 labelled test frames from one clip; no confidence intervals in the matched-precision comparison; cutoffs tuned on 5 frames; absolute numbers differ slightly from E002 because E002 used JPEG stills and E003 uses decoded video frames.
 
 **Correction to E002:** replace the sentence "use YOLOv8x full frame for counts" with "MAE from box counts is driven by cutoff choice; compare detectors by recall at equal precision (see E003)".
+
+## E003b — Camera registration for a handheld video (notebook 05)
+
+**Question.** Can we remove the camera motion from this handheld clip well enough for optical flow and crowd pressure, using only the background?
+
+**Setup.** Crowd masked out with YOLO26x full-frame detections (nms=True, cutoff 0.003, boxes grown 20 px); head coverage 0.994 on labelled frames. Frame-to-frame motion at half resolution, chained to frame 0. Drift check: every 93rd frame registered directly to the previous checkpoint with ORB (3 px threshold).
+
+**Results.**
+- Tracker: ORB features under-read slow motion (whole-pixel positions): in a synthetic test with known motion, ORB chained 36 px of a true 63 px. Lucas–Kanade tracking (sub-pixel) gave 2–3 px error vs 18–30 px for ORB, and is faster (0.04 s/frame). → LK.
+- The camera tilts up between ~3 s and ~7 s: ~230 px at the centre, ~305 px at the top; nearly still otherwise.
+- Motion model: homography required. Similarity differs from homography by up to 35 / 16 / 49 px (top / centre / bottom).
+- Robustness (max difference to the default over all frames): inlier threshold 1 vs 3 px ≤ 0.11 px; tiled mask vs full-frame mask ≤ 0.2 / 1.1 / 3.4 px. → cheaper full-frame mask.
+- 0 failed frame pairs; ≥ 990 inliers per pair; largest one-frame jump 3 px.
+- Drift check: no missing checkpoints; chained vs direct agree within 0.5–3.4 px outside the tilt. During the tilt the bottom of the frame disagrees by 5.4 / 11.9 / 8.0 px (frames 186 / 279 / 372); top and centre ≤ 4.6 px. Features come mostly from the upper background, so the bottom is extrapolated. Which of the two estimates is closer to the truth is not known.
+- Apparent size after the tilt vs frame 0: top 0.88, bottom 1.08. A single fixed pixels-per-metre scale for the whole video would be wrong by up to 12%.
+- Count vs tilt: count dips ~5–8% during the tilt (4–6 s) and recovers; a similar dip occurs at 18–21 s with no camera motion. Tilt not established as the cause.
+
+**Decision.** Default registration: LK + homography, full-frame mask (0.003, 20 px), 1 px threshold. Saved as `registration_G.npy` (frame t → frame 0, full resolution).
+
+**Consequences for Phase 3.**
+- Crowd pressure uses the velocity variance over time at a fixed ground location (Helbing 2007). Registration error that changes over time adds to that variance, so the 5–12 px bottom-of-frame uncertainty during the tilt must be counted in the noise term (C1) or the tilt interval flagged as lower trust.
+- One calibration of frame 0 (known object size or reference points) carries to every frame through G.
+- The view is oblique and tilting, so the scale differs between directions: this clip is a test case for C5's error analysis, not for the simple scale-free argument.
+
+**Files.** `E003b_mask_candidates.csv`, `E003b_mask_overlay.png`, `E003b_smoke_test.csv`, `E003b_rows_[A-D].csv`, `E003b_drift_check.csv`, `E003b_camera_vs_counts.csv/.png`, `registration_G.npy`.
