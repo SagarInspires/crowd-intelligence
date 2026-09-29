@@ -55,8 +55,35 @@ comparison (2x vs baseline, recall). Everything else exploratory.
 recall at equal precision). Most of the overall recall gain is a looser threshold, not better detection.
 YOLOv8x gets nothing. Use tiled YOLO26x for person masks (registration, E003); use YOLOv8x full frame for counts.
 
+
 **Caveats:** 10 test frames from one ~21 s clip with the same people in every frame; cutoff uncertainty is not
 in the intervals; matched-precision rows for 1x/4x were not close to matched (coarse cutoff grid) and are not interpreted.
 
 **Correction to E001:** the YOLO26x row in E001 used an explicit iou=0.7, which changed its results.
 The E002 baseline row is authoritative (recall 71.08, far recall 47.38, MAE 31.3).
+
+
+## E003 — Full-video detection, count stability, and detector comparison at matched precision
+**Date:** 2026-09-29 | **Notebook:** notebooks/04_detection_fullvideo_E003.ipynb
+**Data:** 14931663_1080_1920_60fps.mp4 (1303 frames, 1080x1920, 59.94 fps); 15 labelled frames (5 tuning, 10 test)
+
+**Question:** Which detector is best for (a) crowd masks and (b) a detection baseline, and how steady is each one's count over time?
+
+**Setup:** four detectors on all 1303 frames at confidence floor 0.001: YOLOv8x full frame @1920; YOLO26x full frame with nms=True; YOLO26x full frame with nms=False; YOLO26x 2x tiles (640-px tiles @1280, overlap 0.2, head-point ownership). Speeds on a T4: 0.39 / 0.39 / 0.39 / 2.36 s per frame.
+Video check: 1303 frames decoded = reported; annotated photos match video frames (mean abs diff 1.4-1.5, JPEG noise).
+
+**Results:**
+1. **Count stability** (at equal mean count ~450 boxes/frame): noise around a 1-s median is 5.0% for YOLOv8x and 2.4 / 2.4 / 2.3% for YOLO26x nms=True / nms=False / tiles. Frame pairs with count change >= 10: 42 / 25 / 26 / 22%. Steadiness comes from the model, not from tiling or the NMS mode. Every detector still changes by >= 5 in about half of frame pairs, so a 1-s median filter is needed. Both detectors show a ~15% count drop at 3-5 s (cause: to check, frames 240 vs 300).
+2. **Recall at equal precision** (0.65 / 0.70 / 0.76; far half in brackets):
+   YOLOv8x 0.68 / 0.62 / 0.53 (0.42 / 0.34 / 0.24);
+   YOLO26x nms=True 0.79 / 0.76 / 0.70 (0.61 / 0.55 / 0.47);
+   YOLO26x nms=False 0.78 / 0.72 / 0.65 (0.60 / 0.51 / 0.39);
+   YOLO26x tiles 0.81 / 0.78 / 0.70 (0.65 / 0.61 / 0.51).
+3. **MAE from box counts is a cutoff artifact:** n_det ~ n_true x recall / precision. YOLOv8x's F1 cutoff has precision ~ recall (0.67 / 0.67), so its false alarms cancel its misses. The count bias changes sign with the cutoff (about +85 to +103 at precision 0.65, -43 to -143 at 0.76).
+4. The far half (y < 960) holds 30% of the labelled test heads (1391 of 4582).
+
+**Conclusions:** YOLO26x replaces YOLOv8x as the detection baseline (higher recall at equal precision, half the flicker, same speed). On this clip NMS-free gave no recall or stability advantage over NMS. Tiling adds about 4-5 pp far-half recall at equal precision for 6x the compute. The crowd-mask source (tiles vs full-frame nms=True) is decided by a registration drift ablation in notebook 05.
+
+**Caveats:** 10 labelled test frames from one clip; no confidence intervals in the matched-precision comparison; cutoffs tuned on 5 frames; absolute numbers differ slightly from E002 because E002 used JPEG stills and E003 uses decoded video frames.
+
+**Correction to E002:** replace the sentence "use YOLOv8x full frame for counts" with "MAE from box counts is driven by cutoff choice; compare detectors by recall at equal precision (see E003)".
