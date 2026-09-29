@@ -53,7 +53,7 @@ comparison (2x vs baseline, recall). Everything else exploratory.
 
 **Conclusion:** With 2x magnification YOLO26x recovers distant heads that full frame misses (about +7 pp far
 recall at equal precision). Most of the overall recall gain is a looser threshold, not better detection.
-YOLOv8x gets nothing. Use tiled YOLO26x for person masks (registration, E003); use YOLOv8x full frame for counts.
+YOLOv8x gets nothing. Use tiled YOLO26x for person masks (registration, E003); MAE from box counts is driven by cutoff choice; compare detectors by recall at equal precision (see E003).
 
 
 **Caveats:** 10 test frames from one ~21 s clip with the same people in every frame; cutoff uncertainty is not
@@ -86,7 +86,7 @@ Video check: 1303 frames decoded = reported; annotated photos match video frames
 
 **Caveats:** 10 labelled test frames from one clip; no confidence intervals in the matched-precision comparison; cutoffs tuned on 5 frames; absolute numbers differ slightly from E002 because E002 used JPEG stills and E003 uses decoded video frames.
 
-**Correction to E002:** replace the sentence "use YOLOv8x full frame for counts" with "MAE from box counts is driven by cutoff choice; compare detectors by recall at equal precision (see E003)".
+**Correction to E002 (applied 2026-09-30):** replaced the sentence "use YOLOv8x full frame for counts" with "MAE from box counts is driven by cutoff choice; compare detectors by recall at equal precision (see E003)".
 
 ## E003b — Camera registration for a handheld video (notebook 05)
 
