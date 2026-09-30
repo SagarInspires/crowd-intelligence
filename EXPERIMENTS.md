@@ -143,3 +143,24 @@ By crowd size (our model): <50 heads MAE 4.4 · 50–100: 7.0 · 100–200: 13.5
 3. Adam at fixed lr is unstable; an lr schedule or weight averaging would likely help, not pursued (goal of E004 met).
 
 **Incidents.** First commit failed in plotting (`res.gt` is pandas' greater-than method; fixed to `res["gt"]`); results recovered from the failed version's `best_adam.pth` (re-evaluation gave identical numbers). One re-evaluation mistakenly loaded a 7-epoch leftover checkpoint (MAE 19.58) — discarded. Kaggle unzips uploaded `.pth` files into folders; attach notebook output instead of uploading weights as a dataset.
+
+## E005 — Density models on our own video (street, 1080x1920, 1303 frames)
+
+**Goal:** see how off-the-shelf and our own CSRNet count a real street video, before any optical-flow work.
+**Setup:** 3 models (official Part A, official Part B, ours = E004 Part B Adam weights) x scales 0.5/0.75/1.0. Ground truth: 15 hand-labelled frames (6,828 points, ~455 per frame). The labels leave a far, small-head zone unlabelled (outline in the VIA file); all scores use the area OUTSIDE that outline. The models were not trained or tuned on these frames.
+
+**Results (15 labelled frames, area outside the outline)**
+- Whole-frame totals: official_A@0.5 MAE 26.7 (bias +24.9, ratio 1.05); ours_B@0.5 MAE 35.8 (ratio 1.08); official_B@0.75 MAE 33.1 (ratio 0.98). ours_B at 0.75/1.0 overcounts by ~20%. After a leave-one-frame-out one-number correction the best rows reach MAE 15.8-18.9 (~3.5-4%), about hand-label noise; these are not distinguishable with 15 frames.
+- Spatial (6x3 grid): totals hide compensating errors. Per-square relative error 0.17 (official_A@0.5) to 0.32. Distance bias: predicted/true by row from far to near: official_A@0.5 1.26, 1.11, 1.12, 0.95, 0.83; ours_B@0.5 1.03, 1.04, 1.22, 1.08, 0.62. Near (large) heads are undercounted; row 1 is unreliable (almost inside the outline). Pearson r of square counts 0.93-0.95.
+- Over time: model count follows the hand count with Pearson 0.76-0.87 over 15 frames (0.70-0.77 without frame 0, which has the highest hand count). Frame-to-frame step std 5.7 people (0.9%) at 0.5 and 14.4 (1.9%) at 0.75; slow swing 140-165 people (~25%), similar to the hand counts (535 -> 401). Frame-to-frame changes correlate between models 0.40-0.67, so part of the wiggle is shared (real change or a common cause such as camera shake), not pure model noise.
+- Far zone: the models disagree by up to 4.5x on the far outline (121-549 people), so it is not trustworthy.
+
+**Mall dataset (low count, 1000 frames, true mean 31.2, scale 1.0, inside official ROI)**
+- ours_B: MAE 5.26, bias -4.99, ratio 0.85 (whole frame 3.92 / -2.83 / 0.92).
+- official_A: MAE 13.51, bias -13.51, ratio 0.57 (whole frame 11.99 / -11.99 / 0.62).
+- Opposite of the street video: official_A is best on dense street (~450 people), ours_B on sparse Mall (~31). Interpretation (not proven): each model is best near the crowd density of its training set (Part A dense, Part B sparse).
+
+**Decisions:** downstream use scale 0.5 with official_A and ours_B; drop 0.75/1.0 (noisier, more biased). Smooth counts over ~15 frames (0.25 s); keep model disagreement as an uncertainty signal for the trust map (C2). Exclude the far zone from pressure analysis. Plan a distance-dependent correction validated by holding out whole frames (C5).
+**Limits:** only 15 street frames, one scale on Mall, Mall frames are not independent. Red-dot videos use density peaks (estimated positions, not head detections).
+**Outputs:** results/E005 (tables, summary.json, stills); density maps, grid counts and videos stay in the Kaggle Output tab.
+
