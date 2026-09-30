@@ -1,0 +1,23 @@
+{
+  "experiment": "E004",
+  "dataset": "ShanghaiTech Part B",
+  "recipe": "Adam lr 1e-5, batch 1, random 384x512 crops + flips, early stop patience 30",
+  "weights": "/kaggle/input/notebooks/sagarkumar100/06-csrnet-e004/outputs/E004/ckpt/best_adam.pth",
+  "best_val_mae": 15.77700252532959,
+  "best_epoch": 51,
+  "epochs_run": 81,
+  "ours": {
+    "MAE": 12.743851589251168,
+    "RMSE": 22.530417052131188,
+    "bias": -0.27550506591796875
+  },
+  "official_weights": {
+    "MAE": 9.763629013978981,
+    "RMSE": 15.950343159987117,
+    "bias": -2.8673613765571693
+  },
+  "paper": {
+    "MAE": 10.6,
+    "RMSE": 16.0
+  }
+}
