@@ -112,3 +112,34 @@ Video check: 1303 frames decoded = reported; annotated photos match video frames
 - The view is oblique and tilting, so the scale differs between directions: this clip is a test case for C5's error analysis, not for the simple scale-free argument.
 
 **Files.** `E003b_mask_candidates.csv`, `E003b_mask_overlay.png`, `E003b_smoke_test.csv`, `E003b_rows_[A-D].csv`, `E003b_drift_check.csv`, `E003b_camera_vs_counts.csv/.png`, `registration_G.npy`.
+
+## E004 — CSRNet reproduction on ShanghaiTech Part B (2026-09-30)
+
+**Goal.** Prove our density-map code (data, targets, model, training, evaluation) before using CSRNet on our video.
+**Notebook.** `notebooks/06_csrnet_E004.ipynb` · **Results.** `results/E004/`
+
+**Setup.** ShanghaiTech B: 400 train (360 train + 40 val, seed 0), 316 test, 768×1024. Fixed-σ=15 Gaussian density, sum-pooled to 1/8 (map sums match head counts, worst error 1.7e-07; no out-of-image points). CSRNet: VGG16 front end (ImageNet) + dilated back end, 16,263,489 parameters, strict load of official weights.
+
+**Results (316 test images; test used once per model).**
+
+| Model | MAE | RMSE | Bias |
+|---|---|---|---|
+| Paper (Li et al. 2018) | 10.6 | 16.0 | — |
+| Official Part B weights, our code | 9.76 | 15.95 | −2.87 |
+| Our training (Adam) | **12.74** | **22.53** | −0.28 |
+
+By crowd size (our model): <50 heads MAE 4.4 · 50–100: 7.0 · 100–200: 13.5 · **200+: 33.8, bias −14.6** (dense scenes undercounted).
+
+**Recipe and deviations from the paper.**
+- Paper's released code (checked in leeyeehoo/CSRNet-pytorch): SGD lr 1e-7, momentum 0.95, wd 5e-4, batch 1, full images (crop/flip block is disabled with `if False:`), each epoch = 4 passes over the data.
+- Attempt 1 (SGD 1e-7 with half-size crops, 1 pass/epoch): val MAE flat 82–89 for 10 epochs; stopped. Not a test of the official recipe (crops + 1 pass ≈ 16× less update per epoch).
+- Final: Adam lr 1e-5, batch 1, random 384×512 crops + flips, patience 30. Best epoch 51 of 81 (val MAE 15.78). Validation very noisy (up to 184 at epoch 9).
+
+**Checks.** 5-image overfit test: loss fell 32–35×, counts within 13–17%.
+
+**Findings.**
+1. Our inference code reproduces the paper (9.76 vs 10.6); the official checkpoint was likely selected on test, so slightly optimistic.
+2. Our trained model passes (≤14) but RMSE 22.5 vs 16: errors concentrate in dense images (200+ heads undercounted by ~15). Our video has ~454 people/frame → expect undercount; E005 compares Part A weights and considers an injection-test correction.
+3. Adam at fixed lr is unstable; an lr schedule or weight averaging would likely help, not pursued (goal of E004 met).
+
+**Incidents.** First commit failed in plotting (`res.gt` is pandas' greater-than method; fixed to `res["gt"]`); results recovered from the failed version's `best_adam.pth` (re-evaluation gave identical numbers). One re-evaluation mistakenly loaded a 7-epoch leftover checkpoint (MAE 19.58) — discarded. Kaggle unzips uploaded `.pth` files into folders; attach notebook output instead of uploading weights as a dataset.
