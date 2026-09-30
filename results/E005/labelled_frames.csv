@@ -1,0 +1,16 @@
+filename,guess,image,matched,diff,diff2,frame,n,n_all,n_roi
+frame_00000.jpg,0,/kaggle/input/datasets/sagarkumar100/hand-annotated-imgs/frame_00000.jpg,0,0.02873883955180645,0.7329798936843872,0,535,536,1
+frame_00093.jpg,93,/kaggle/input/datasets/sagarkumar100/hand-annotated-imgs/frame_00093.jpg,93,0.02790178544819355,0.6300223469734192,93,440,441,1
+frame_00186.jpg,186,/kaggle/input/datasets/sagarkumar100/hand-annotated-imgs/frame_00186.jpg,186,0.02887834794819355,0.0500837042927742,186,503,504,1
+frame_00279.jpg,279,/kaggle/input/datasets/sagarkumar100/hand-annotated-imgs/frame_00279.jpg,279,0.03055245615541935,2.6323940753936768,279,454,455,1
+frame_00372.jpg,372,/kaggle/input/datasets/sagarkumar100/hand-annotated-imgs/frame_00372.jpg,372,0.0245535708963871,0.8060826063156128,372,438,439,1
+frame_00465.jpg,465,/kaggle/input/datasets/sagarkumar100/hand-annotated-imgs/frame_00465.jpg,465,0.02859933115541935,0.3641183078289032,465,401,402,1
+frame_00558.jpg,558,/kaggle/input/datasets/sagarkumar100/hand-annotated-imgs/frame_00558.jpg,558,0.0265066958963871,0.0387834832072258,558,488,489,1
+frame_00651.jpg,651,/kaggle/input/datasets/sagarkumar100/hand-annotated-imgs/frame_00651.jpg,651,0.0319475457072258,0.0678013414144516,651,447,448,1
+frame_00744.jpg,744,/kaggle/input/datasets/sagarkumar100/hand-annotated-imgs/frame_00744.jpg,744,0.0301339291036129,0.0757533460855484,744,413,414,1
+frame_00837.jpg,837,/kaggle/input/datasets/sagarkumar100/hand-annotated-imgs/frame_00837.jpg,837,0.0226004458963871,0.0421316958963871,837,449,450,1
+frame_00930.jpg,930,/kaggle/input/datasets/sagarkumar100/hand-annotated-imgs/frame_00930.jpg,930,0.0265066958963871,0.0403180792927742,930,441,442,1
+frame_01023.jpg,1023,/kaggle/input/datasets/sagarkumar100/hand-annotated-imgs/frame_01023.jpg,1023,0.02873883955180645,0.0443638376891613,1023,452,455,3
+frame_01116.jpg,1116,/kaggle/input/datasets/sagarkumar100/hand-annotated-imgs/frame_01116.jpg,1116,0.02692522294819355,0.03125,1116,434,435,1
+frame_01209.jpg,1209,/kaggle/input/datasets/sagarkumar100/hand-annotated-imgs/frame_01209.jpg,1209,0.02957589365541935,0.0592912957072258,1209,473,474,1
+frame_01302.jpg,1302,/kaggle/input/datasets/sagarkumar100/hand-annotated-imgs/frame_01302.jpg,1302,0.02957589365541935,0.1044921875,1302,460,461,1
